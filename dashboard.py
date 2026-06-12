@@ -188,14 +188,17 @@ with col2:
     terminal_value = (cash_flows[-1] * (1 + terminal_growth)) / (discount_rate - terminal_growth)
     dcf_value = sum(cash_flows) + terminal_value
 
-    current_price = info.get("currentPrice", 0) if info else 0
+            try:
+                current_price = yf.Ticker(selected_stock).info.get("currentPrice", 0)
+            except:
+                current_price = 0
 
-    st.metric("DCF Intrinsic Value", f"₹{dcf_value:.2f}")
-    st.metric("Current Market Price", f"₹{current_price:.2f}")
+            st.metric("DCF Intrinsic Value", f"₹{dcf_value:.2f}")
+            st.metric("Current Market Price", f"₹{current_price:.2f}")
 
-    if current_price > 0:
-        margin = ((dcf_value - current_price) / current_price) * 100
-        if margin > 0:
-            st.success(f"Undervalued by {margin:.1f}% — potential BUY")
-        else:
-            st.error(f"Overvalued by {abs(margin):.1f}% — potential SELL")
+            if current_price > 0:
+                margin = ((dcf_value - current_price) / current_price) * 100
+                if margin > 0:
+                    st.success(f"Undervalued by {margin:.1f}% — potential BUY")
+                else:
+                    st.error(f"Overvalued by {abs(margin):.1f}% — potential SELL")
