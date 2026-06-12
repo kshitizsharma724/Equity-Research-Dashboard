@@ -159,26 +159,25 @@ try:
 
 except:
     st.warning("Financial ratios unavailable for this stock")
-    # DCF Model
+# DCF Model
 st.subheader("DCF Valuation Model")
 
-col1, col2 = st.columns(2)
+dcf_col1, dcf_col2 = st.columns(2)
 
-with col1:
+with dcf_col1:
     try:
-        info = yf.Ticker(selected_stock).info
-        current_eps = info.get("trailingEps", 50)
+        stock_info = yf.Ticker(selected_stock).info
+        default_eps = stock_info.get("trailingEps", 50)
     except:
-        current_eps = 50
+        default_eps = 50
 
-    eps = st.number_input("Current EPS (₹)", value=float(current_eps) if current_eps else 50.0)
+    eps = st.number_input("Current EPS (₹)", value=float(default_eps) if default_eps else 50.0)
     growth_rate = st.slider("Growth Rate (%)", 5, 30, 15) / 100
     discount_rate = st.slider("Discount Rate (%)", 8, 20, 12) / 100
     terminal_growth = st.slider("Terminal Growth Rate (%)", 2, 8, 4) / 100
     years = st.slider("Projection Years", 3, 10, 5)
 
-with col2:
-    # DCF Calculation
+with dcf_col2:
     cash_flows = []
     for year in range(1, years + 1):
         cf = eps * ((1 + growth_rate) ** year)
@@ -188,17 +187,17 @@ with col2:
     terminal_value = (cash_flows[-1] * (1 + terminal_growth)) / (discount_rate - terminal_growth)
     dcf_value = sum(cash_flows) + terminal_value
 
-            try:
-                current_price = yf.Ticker(selected_stock).info.get("currentPrice", 0)
-            except:
-                current_price = 0
+    try:
+        current_price = yf.Ticker(selected_stock).info.get("currentPrice", 0)
+    except:
+        current_price = 0
 
-            st.metric("DCF Intrinsic Value", f"₹{dcf_value:.2f}")
-            st.metric("Current Market Price", f"₹{current_price:.2f}")
+    st.metric("DCF Intrinsic Value", f"₹{dcf_value:.2f}")
+    st.metric("Current Market Price", f"₹{current_price:.2f}")
 
-            if current_price > 0:
-                margin = ((dcf_value - current_price) / current_price) * 100
-                if margin > 0:
-                    st.success(f"Undervalued by {margin:.1f}% — potential BUY")
-                else:
-                    st.error(f"Overvalued by {abs(margin):.1f}% — potential SELL")
+    if current_price > 0:
+        margin = ((dcf_value - current_price) / current_price) * 100
+        if margin > 0:
+            st.success(f"Undervalued by {margin:.1f}% — potential BUY")
+        else:
+            st.error(f"Overvalued by {abs(margin):.1f}% — potential SELL")
